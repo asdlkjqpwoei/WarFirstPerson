@@ -1,16 +1,16 @@
 // Personal Copyright
 #pragma once
-#include "Components/ActorComponent.h"
+#include "Components/GameFrameworkComponent.h"
 #include "WarWeaponAmmunitionComponent.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class WARFIRSTPERSON_API UWarWeaponAmmunitionComponent : public UActorComponent
+UCLASS()
+class WARFIRSTPERSON_API UWarWeaponAmmunitionComponent : public UGameFrameworkComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UWarWeaponAmmunitionComponent();
+	UWarWeaponAmmunitionComponent(const FObjectInitializer& ObjectInitializer);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -38,15 +38,15 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "War|Weapon Properties", BlueprintGetter =	GetCurrentMagazineCapacity)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "War|Weapon Ammunition Properties", BlueprintGetter =	GetCurrentMagazineCapacity)
 	int32 CurrentMagazineCapacity = 0;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "War|Weapon Properties", BlueprintGetter = GetCurrentAmmunitionCapacity)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "War|Weapon Ammunition Properties", BlueprintGetter = GetCurrentAmmunitionCapacity)
 	int32 CurrentAmmunitionCapacity = 0;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "War|Weapon Properties", BlueprintGetter = GetMaxMagazineCapacity)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "War|Weapon Ammunition Properties", BlueprintGetter = GetMaxMagazineCapacity)
 	int32 MaxMagazineCapacity = 0;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "War|Weapon Properties", BlueprintGetter = GetMaxAmmunitionCapacity)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "War|Weapon Ammunition Properties", BlueprintGetter = GetMaxAmmunitionCapacity)
 	int32 MaxAmmunitionCapacity = 0;
 };

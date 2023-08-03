@@ -85,16 +85,16 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "War|Weapon Physics")
 	void OnCollisionEndSphereOverplay(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Projectile Properties")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	TObjectPtr<AWarWeaponProjectile> Bullet;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties")
+	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly)
 	TObjectPtr<UWarWeaponPropertiesComponent> WarWeaponPropertiesComponent;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties")
+	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly)
 	TObjectPtr<UWarWeaponAmmunitionComponent> WarWeaponAmmunitionComponent;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon State")
+	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly)
 	TObjectPtr<UWarWeaponStateComponent> WarWeaponStateComponent;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Animation")

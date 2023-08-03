@@ -1,5 +1,4 @@
 // Personal Copyright
-
 #include "Weapon/WarWeapon.h"
 #include "AIController.h"
 #include "Character/WarCharacter.h"
@@ -19,6 +18,7 @@
 #include "Weapon/WarWeaponAmmunitionComponent.h"
 #include "Weapon/WarWeaponPropertiesComponent.h"
 #include "Weapon/WarWeaponStateComponent.h"
+#include "Weapon/WarWeaponProjectile.h"
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(GameplayTagHitZone, "HitZone")
 
@@ -39,6 +39,8 @@ AWarWeapon::AWarWeapon()
 	CollisionSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	CollisionSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	Bullet = CreateDefaultSubobject<AWarWeaponProjectile>(TEXT("WarWeaponProjectile"));
 
 	WarWeaponAmmunitionComponent = CreateDefaultSubobject<UWarWeaponAmmunitionComponent>(TEXT("WarWeaponAmmunitionComponent"));
 

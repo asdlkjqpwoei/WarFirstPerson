@@ -1,17 +1,17 @@
 // Personal Copyright
 #pragma once
-#include "Components/ActorComponent.h"
+#include "Components/GameFrameworkComponent.h"
 #include "GameplayTagContainer.h"
 #include "WarWeaponPropertiesComponent.generated.h"
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class WARFIRSTPERSON_API UWarWeaponPropertiesComponent : public UActorComponent
+UCLASS()
+class WARFIRSTPERSON_API UWarWeaponPropertiesComponent : public UGameFrameworkComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UWarWeaponPropertiesComponent();
+	UWarWeaponPropertiesComponent(const FObjectInitializer& ObjectInitializer);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

@@ -1,6 +1,6 @@
 // Personal Copyright
 #pragma once
-#include "Components/ActorComponent.h"
+#include "Components/GameFrameworkComponent.h"
 #include "WarWeaponStateComponent.generated.h"
 
 UENUM(BlueprintType)
@@ -14,14 +14,14 @@ enum class EWarWeaponState : uint8
 	InvalidState
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class WARFIRSTPERSON_API UWarWeaponStateComponent : public UActorComponent
+UCLASS()
+class WARFIRSTPERSON_API UWarWeaponStateComponent : public UGameFrameworkComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UWarWeaponStateComponent();
+	UWarWeaponStateComponent(const FObjectInitializer& ObjectInitializer);
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
