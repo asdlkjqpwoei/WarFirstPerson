@@ -1,12 +1,15 @@
 // Personal Copyright
 #include "Weapon/WarWeapon.h"
 #include "AIController.h"
+#include "Camera/WarCameraMode.h"
+#include "Camera/WarCameraComponent.h"
 #include "Character/WarCharacter.h"
 #include "Character/WarHealthComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/SphereComponent.h"
 #include "Engine/HitResult.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "NativeGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraSystem.h"
@@ -26,13 +29,16 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(GameplayTagHitZone, "HitZone")
 AWarWeapon::AWarWeapon()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	WeaponSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkeletalMesh"));
 	SetRootComponent(WeaponSkeletalMesh);
 	WeaponSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	WeaponSkeletalMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	WeaponSkeletalMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	WeaponSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponSkeletalMesh->SetSimulatePhysics(true);
+	WeaponSkeletalMesh->SetEnableGravity(true);
 
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
 	CollisionSphere->SetupAttachment(RootComponent);
@@ -47,17 +53,30 @@ AWarWeapon::AWarWeapon()
 	WarWeaponPropertiesComponent = CreateDefaultSubobject<UWarWeaponPropertiesComponent>(TEXT("WarWeaponPropertiesComponent"));
 
 	WarWeaponStateComponent = CreateDefaultSubobject<UWarWeaponStateComponent>(TEXT("WarWeaponStateComponent"));
-	WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::Ready);
+	WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::NoOwner);
 }
 
 // Called every frame
 void AWarWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	const bool bMinSpread = UpdateSpread(DeltaTime);
+	const bool bMinMultipliers = UpdateMultipliers(DeltaTime);
+	WarWeaponPropertiesComponent->SetAllowFirstShotAccracy(WarWeaponPropertiesComponent->GetAllowFirstShotAccuracy() && bMinSpread && bMinMultipliers);
+}
+
+void AWarWeapon::Interact(APawn* Pawn)
+{
+	Super::Interact(Pawn);
+	PickupWeapon(Pawn);
 }
 
 void AWarWeapon::Fire()
 {
+	if (WarWeaponStateComponent->GetCurrentWarWeaponState() != EWarWeaponState::Ready)
+	{
+		return;
+	}
 	bIsFiring = true;
 	OnFiring();
 	int32 CurrentMagazineCapacity = WarWeaponAmmunitionComponent->GetCurrentMagazineCapacity();
@@ -141,8 +160,16 @@ void AWarWeapon::Fire()
 
 void AWarWeapon::Reload()
 {
-	bIsReloading = true;
-	OnReloading();
+	if (WarWeaponAmmunitionComponent->GetCurrentAmmunitionCapacity() <= 0)
+	{
+		WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::OutOfAmmunition);
+	}
+	else
+	{
+		bIsReloading = true;
+		WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::Reloading);
+		OnReloading();
+	}
 }
 
 void AWarWeapon::OnFired()
@@ -156,10 +183,11 @@ void AWarWeapon::OnReloaded()
 	const int32& CurrentMagazineCapacity = WarWeaponAmmunitionComponent->GetCurrentMagazineCapacity();
 	const int32& CurrentAmmunitionCapacity = WarWeaponAmmunitionComponent->GetCurrentAmmunitionCapacity();
 	const int32& MaxMagazineCapacity = WarWeaponAmmunitionComponent->GetMaxMagazineCapacity();
-	const int32 FullfillMagazineNeed = MaxMagazineCapacity - CurrentAmmunitionCapacity;
-	const int32 RemainingAmmunitionCapacity = CurrentAmmunitionCapacity - FullfillMagazineNeed;
+	const int32& ConsumedMagazine = MaxMagazineCapacity - CurrentAmmunitionCapacity;
+	const int32& RemainingAmmunitionCapacity = CurrentAmmunitionCapacity - ConsumedMagazine;
 	WarWeaponAmmunitionComponent->SetCurrentMagazineCapacity(MaxMagazineCapacity);
 	WarWeaponAmmunitionComponent->SetCurrentAmmunitionCapacity(RemainingAmmunitionCapacity);
+	WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::Ready);
 }
 
 bool AWarWeapon::PickupWeapon(APawn* PickingPawn)
@@ -169,15 +197,37 @@ bool AWarWeapon::PickupWeapon(APawn* PickingPawn)
 	UWarInventoryComponent* WarInventoryComponent = Cast<UWarInventoryComponent>(WarCharacter->GetComponentByClass(UWarInventoryComponent::StaticClass()));
 	check(WarInventoryComponent);
 
-	if (WarInventoryComponent->FindItemByDefinition(ItemDefinition))
+	if (const UWarInventoryItemInstance* WarInventoryItemInstance = WarInventoryComponent->FindItemByDefinition(ItemDefinition))
 	{
-		// TODO Supply Ammo
+		const AActor* OwnedItemActor = WarInventoryItemInstance->GetItemActor();
+		check(OwnedItemActor);
+		const AWarWeapon* OwnedWarWeapon = Cast<AWarWeapon>(OwnedItemActor);
+		check(OwnedWarWeapon);
+		UWarWeaponAmmunitionComponent* OwnedWarWeaponAmmunitionComponent = Cast<UWarWeaponAmmunitionComponent>(OwnedWarWeapon->GetComponentByClass(UWarWeaponAmmunitionComponent::StaticClass()));
+		check(OwnedWarWeaponAmmunitionComponent);
+		const int32& MaxAmmunitionCapacity = WarWeaponAmmunitionComponent->GetMaxAmmunitionCapacity();
+		const int32& MaxMagazineCapacity = WarWeaponAmmunitionComponent->GetMaxMagazineCapacity();
+		const int32& CurrentAmmunitionCapacity = WarWeaponAmmunitionComponent->GetCurrentAmmunitionCapacity();
+		const int32& OwnedWarWeaponCurrentAmmunition = OwnedWarWeaponAmmunitionComponent->GetCurrentAmmunitionCapacity();
+		const int32& AmmunitionLack = MaxAmmunitionCapacity - OwnedWarWeaponCurrentAmmunition;
+		if (AmmunitionLack < CurrentAmmunitionCapacity)
+		{
+			WarWeaponAmmunitionComponent->SetCurrentAmmunitionCapacity(CurrentAmmunitionCapacity - AmmunitionLack);
+			OwnedWarWeaponAmmunitionComponent->SetCurrentAmmunitionCapacity(MaxAmmunitionCapacity);
+		}
+		else
+		{
+			OwnedWarWeaponAmmunitionComponent->SetCurrentAmmunitionCapacity(OwnedWarWeaponCurrentAmmunition + CurrentAmmunitionCapacity);
+			WarWeaponAmmunitionComponent->SetCurrentAmmunitionCapacity(0);
+			Destroy();
+		}
 		return true;
 	}
 	else
 	{
 		TObjectPtr<UWarInventoryItemInstance> NewWarInventoryItemInstance = NewObject<UWarInventoryItemInstance>(WarInventoryComponent->GetOwner());
 		NewWarInventoryItemInstance->SetItemDefinition(ItemDefinition);
+		NewWarInventoryItemInstance->SetItemActor(this);
 		if (WarInventoryComponent->IsWeaponSlotsFull())
 		{
 			WarInventoryComponent->ReplaceActiveWeapon(NewWarInventoryItemInstance);
@@ -191,7 +241,15 @@ bool AWarWeapon::PickupWeapon(APawn* PickingPawn)
 		SetActorRelativeTransform(WeaponAttachTransform);
 		AttachToComponent(WarCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, AttachSkeletalSocket);
 		SetOwner(WarCharacter);
-		WarCharacter->SetIsArmed(true);
+		if (!WarCharacter->IsArmed())
+		{
+			WarCharacter->SetIsArmed(true);
+		}
+		CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponSkeletalMesh->SetSimulatePhysics(false);
+		WeaponSkeletalMesh->SetEnableGravity(false);
+		WeaponSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::Ready);
 		OnWeaponPickingUp();
 		return true;
 	}
@@ -200,7 +258,17 @@ bool AWarWeapon::PickupWeapon(APawn* PickingPawn)
 
 bool AWarWeapon::DropWeapon(APawn* DropingPawn)
 {
-	// TODO Currently not support drop weapon.
+	check(DropingPawn);
+	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WeaponSkeletalMesh->SetSimulatePhysics(true);
+	WeaponSkeletalMesh->SetEnableGravity(true);
+	WeaponSkeletalMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	WeaponSkeletalMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	WeaponSkeletalMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	WeaponSkeletalMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	WeaponSkeletalMesh->MarkRenderStateDirty();
+	SetOwner(nullptr);
+	WarWeaponStateComponent->SetCurrentWarWeaponState(EWarWeaponState::NoOwner);
 	return false;
 }
 
@@ -298,7 +366,7 @@ void AWarWeapon::TraceBulletsInShot(const FWarWeaponFireParameters& WarWeaponPar
 		const float SpreadAngleMultiplier = WarWeaponPropertiesComponent->GetCurrentSpreadAngleMultiplier();
 		const float ActualSpreadAngle = BaseSpreadAngle * SpreadAngleMultiplier;
 		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
-		const FVector BulletDirection = VRandomConeNormalDistribution(WarWeaponParameter.AimDirection, HalfSpreadAngleInRadians, WarWeaponPropertiesComponent->GetSpreadExponent());
+		const FVector BulletDirection = VRandomConeNormalDistribution(WarWeaponParameter.AimDirection, HalfSpreadAngleInRadians, WarWeaponPropertiesComponent->GetFireSpreadExponent());
 		const FVector TraceEnd = WarWeaponParameter.TraceStart + (BulletDirection * WarWeaponPropertiesComponent->GetDealDamageMaxRange());
 		FVector HitLocation = TraceEnd;
 		TArray<FHitResult> AllImpactsHitResults;
@@ -485,16 +553,69 @@ void AWarWeapon::ComputeHeatRange(float& MinHeat, float&MaxHeat)
 	MaxHeat = FMath::Max(FMath::Max(Max1, Max2), Max3);
 }
 
+bool AWarWeapon::UpdateSpread(float DeltaTime)
+{
+	const float TimeSinceFired = GetWorld()->TimeSince(LastFireTime);
+	if (TimeSinceFired > WarWeaponPropertiesComponent->GetSpreadRecoveryCoolDownDelay())
+	{
+		const float CoolDownRate = WarWeaponPropertiesComponent->GetHeatToCoolDownPerSecondCurve().GetRichCurveConst()->Eval(WarWeaponPropertiesComponent->GetCurrentHeat());
+		WarWeaponPropertiesComponent->SetCurrentHeat(ClampHeat(WarWeaponPropertiesComponent->GetCurrentHeat() - (CoolDownRate * DeltaTime)));
+		WarWeaponPropertiesComponent->SetCurrentSpreadAngle(WarWeaponPropertiesComponent->GetHeatToSpreadCurve().GetRichCurveConst()->Eval(WarWeaponPropertiesComponent->GetCurrentHeat()));
+	}
+	float MinSpread;
+	float MaxSpread;
+	WarWeaponPropertiesComponent->GetHeatToSpreadCurve().GetRichCurveConst()->GetValueRange(MinSpread, MaxSpread);
+	return FMath::IsNearlyEqual(WarWeaponPropertiesComponent->GetCurrentSpreadAngle(), MinSpread, KINDA_SMALL_NUMBER);
+}
+
+bool AWarWeapon::UpdateMultipliers(float DeltaTime)
+{
+	const float MultiplierNearlyEqualThreshold = 0.05f;
+	AWarCharacter* WarCharacter = Cast<AWarCharacter>(GetOwner());
+	check(WarCharacter);
+	UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(WarCharacter->GetMovementComponent());
+
+	const float WarCharacterSpeed = WarCharacter->GetVelocity().Size();
+	const float WarCharacterMovementTargetValue = FMath::GetMappedRangeValueClamped(FVector2D(WarWeaponPropertiesComponent->GetStandingStillSpeedThreshold(), WarWeaponPropertiesComponent->GetStandingStillSpeedThreshold() + WarWeaponPropertiesComponent->GetStandingStillToMovingSpeedRange()), FVector2D(WarWeaponPropertiesComponent->GetStandingStillSpreadAngleMultiplier(), 1.0f), WarCharacterSpeed);
+	WarWeaponPropertiesComponent->SetCurrentStandingStillMultiplier(FMath::FInterpTo(WarWeaponPropertiesComponent->GetCurrentStandingStillMultiplier(), WarCharacterMovementTargetValue, DeltaTime, WarWeaponPropertiesComponent->GetStandingStillTransitionRate()));
+	const bool bStandingStillMultiplierAtMin = FMath::IsNearlyEqual(WarWeaponPropertiesComponent->GetCurrentStandingStillMultiplier(), WarWeaponPropertiesComponent->GetStandingStillSpreadAngleMultiplier(), WarWeaponPropertiesComponent->GetStandingStillSpreadAngleMultiplier() * 0.1f);
+
+	const bool bIsCrouching = (CharacterMovementComponent !=nullptr) && CharacterMovementComponent->IsCrouching();
+	const float CrouchingTargetValue = bIsCrouching ? WarWeaponPropertiesComponent->GetCrouchSpreadAngleMultiplier() : 1.0f;
+	WarWeaponPropertiesComponent->SetCurrentCrouchMultiplier(FMath::FInterpTo(WarWeaponPropertiesComponent->GetCurrentCrouchMultiplier(), CrouchingTargetValue, DeltaTime, MultiplierNearlyEqualThreshold));
+	const bool bCrouchingMultiplierAtTarget = FMath::IsNearlyEqual(WarWeaponPropertiesComponent->GetCurrentStandingStillMultiplier(), WarWeaponPropertiesComponent->GetStandingStillSpreadAngleMultiplier(), WarWeaponPropertiesComponent->GetStandingStillSpreadAngleMultiplier() * 0.1f);
+
+	const bool bIsJumpingOrFalling = (CharacterMovementComponent != nullptr) && CharacterMovementComponent->IsFalling();
+	const float JumpFallTargetValue = bIsJumpingOrFalling ? WarWeaponPropertiesComponent->GetJumpingOrFallingSpreadAngleMultiplier() : 1.0f;
+	WarWeaponPropertiesComponent->SetCurrentJumpFallMultiplier(FMath::FInterpTo(WarWeaponPropertiesComponent->GetCurrentJumpFallMultiplier(), CrouchingTargetValue, DeltaTime, WarWeaponPropertiesComponent->GetJumpingOrFallingsTransitionRate()));
+	const bool bJumpFallMultiplierIsOne = FMath::IsNearlyEqual(WarWeaponPropertiesComponent->GetCurrentJumpFallMultiplier(), 1.0f, MultiplierNearlyEqualThreshold);
+
+	float AimingAlpha = 0.0f;
+	if (const UWarCameraComponent* WarCameraComponent = UWarCameraComponent::FindCameraComponent(WarCharacter))
+	{
+		float TopWarCameraWeight;
+		EWarCameraType TopWarCameraType;
+		WarCameraComponent->GetBlendInfo(TopWarCameraWeight, TopWarCameraType);
+		AimingAlpha = (TopWarCameraType == EWarCameraType::AimDownSight) ? TopWarCameraWeight : 0.0f;
+	}
+	const float AimingMultiplier = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(1.0f, WarWeaponPropertiesComponent->GetAimingSpreadAngleMultiplier()), AimingAlpha);
+	const bool bAimingMultiplierAtTarget = FMath::IsNearlyEqual(AimingMultiplier, WarWeaponPropertiesComponent->GetAimingSpreadAngleMultiplier(), KINDA_SMALL_NUMBER);
+
+	const float CombinedMultiplier = AimingMultiplier * WarWeaponPropertiesComponent->GetCurrentStandingStillMultiplier() * WarWeaponPropertiesComponent->GetCurrentCrouchMultiplier() * WarWeaponPropertiesComponent->GetCurrentJumpFallMultiplier();
+	WarWeaponPropertiesComponent->SetCurrentSpreadAngleMultiplier(CombinedMultiplier);
+	return bStandingStillMultiplierAtMin && bCrouchingMultiplierAtTarget && bJumpFallMultiplierIsOne && bAimingMultiplierAtTarget;
+}
+
 void AWarWeapon::OnCollisionBeginSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AWarCharacter* WarCharacter = Cast<AWarCharacter>(OtherActor);
 	check(WarCharacter)
-	WarCharacter->AddOverlappedWeapon(this);
+	WarCharacter->AddOverlappedActor(this);
 }
 
 void AWarWeapon::OnCollisionEndSphereOverplay(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AWarCharacter* WarCharacter = Cast<AWarCharacter>(OtherActor);
 	check(WarCharacter)
-	WarCharacter->RemoveOverlappedWeapon(this);
+	WarCharacter->RemoveOverlappedActor(this);
 }

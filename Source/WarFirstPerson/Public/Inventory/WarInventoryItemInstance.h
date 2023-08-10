@@ -1,8 +1,5 @@
 // Personal Copyright
-
 #pragma once
-
-#include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "WarInventoryItemInstance.generated.h"
 
@@ -16,8 +13,10 @@ class WARFIRSTPERSON_API UWarInventoryItemInstance : public UObject
 public:
 	UWarInventoryItemInstance(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void SetItemDefinition(TSubclassOf<UWarInventoryItemDefinition> InItemDefinition);
+	void SetItemDefinition(TSubclassOf<UWarInventoryItemDefinition> NewItemDefinition);
 	TSubclassOf<UWarInventoryItemDefinition> GetItemDefinition() const;
+	void SetItemActor(AActor* NewActor);
+	AActor* GetItemActor() const;
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 
@@ -35,4 +34,5 @@ private:
 
 	friend FWarInventoryList;
 	TSubclassOf<UWarInventoryItemDefinition> ItemDefinition;
+	TObjectPtr<AActor> ItemActor;
 };

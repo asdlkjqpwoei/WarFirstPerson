@@ -3,7 +3,9 @@
 #include "Camera/CameraComponent.h"
 #include "WarCameraComponent.generated.h"
 
+enum class EWarCameraType;
 class UWarCameraMode;
+struct FGameplayTag;
 struct FWarCameraModeViewData;
 
 /**
@@ -18,9 +20,10 @@ public:
 
 	virtual AActor* GetFocusActor() const;
 	void SetCurrentWarCameraMode(UWarCameraMode* NewWarCameraMode);
+	void GetBlendInfo(float& OutWeightOfTopCamera, EWarCameraType& OutTypeOfTopCamera) const;
 
 	UFUNCTION(BlueprintPure, Category = "War|Camera")
-	static UWarCameraComponent* FindCameraComponent(const AActor* Actor) {return (Actor ? Actor->FindComponentByClass<UWarCameraComponent>() : nullptr); }
+	static UWarCameraComponent* FindCameraComponent(const AActor* Actor);
 
 	UFUNCTION(BlueprintCallable, Category = "War|Camera")
 	UWarCameraMode* GetDefaultFirstCameraMode() const;

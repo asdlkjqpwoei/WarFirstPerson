@@ -1,5 +1,6 @@
 // Personal Copyright
 #pragma once
+#include "InteractiveActor/WarInteractiveActor.h"
 #include "GameFramework/Actor.h"
 #include "WarWeapon.generated.h"
 
@@ -26,7 +27,7 @@ struct FWarWeaponFireParameters
 };
 
 UCLASS()
-class WARFIRSTPERSON_API AWarWeapon : public AActor
+class WARFIRSTPERSON_API AWarWeapon : public AWarInteractiveActor
 {
 	GENERATED_BODY()
 	
@@ -35,6 +36,7 @@ public:
 	AWarWeapon();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void Interact(APawn* Pawn) override;
 	void Fire();
 	void Reload();
 
@@ -75,6 +77,8 @@ protected:
 	void AddWeaponSpread();
 	float ClampHeat(float NewHeat);
 	void ComputeHeatRange(float& MinHeat, float& MaxHeat);
+	bool UpdateSpread(float DeltaTime);
+	bool UpdateMultipliers(float DeltaTime);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "War|Weapon")
 	void OnWeaponPickingUp();
@@ -127,4 +131,6 @@ protected:
 private:
 	bool bIsReloading;
 	bool bIsFiring;
+
+	double LastFireTime;
 };

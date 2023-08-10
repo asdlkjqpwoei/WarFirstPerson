@@ -11,6 +11,7 @@
 #include "Input/WarEnhancedInputComponent.h"
 #include "Input/WarInputConfig.h"
 #include "Input/WarPlayerMappableInputConfigPair.h"
+#include "InteractiveActor/WarInteractiveActor.h"
 #include "Inventory/WarInventoryComponent.h"
 #include "Inventory/WarInventoryItemDefinition.h"
 #include "PlayerMappableInputConfig.h"
@@ -50,31 +51,34 @@ void AWarCharacter::BeginPlay()
 
 }
 
-bool AWarCharacter::AddOverlappedWeapon(AWarWeapon* WarWeapon)
+bool AWarCharacter::AddOverlappedActor(AActor* Actor)
 {
-	check(WarWeapon);
-	if (OverlappedWeapons.Add(WarWeapon) != INDEX_NONE)
+	if (AWarInteractiveActor* InteractiveActor = Cast<AWarInteractiveActor>(Actor))
 	{
-		return true;
+		if (OverlappedActors.Add(InteractiveActor) != INDEX_NONE)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
-bool AWarCharacter::RemoveOverlappedWeapon(AWarWeapon* WarWeapon)
+bool AWarCharacter::RemoveOverlappedActor(AActor* Actor)
 {
-	int32 WarWeaponIndex = OverlappedWeapons.Find(WarWeapon);
-	if (WarWeaponIndex != INDEX_NONE)
+	if (AWarInteractiveActor* InteractiveActor = Cast<AWarInteractiveActor>(Actor))
 	{
-		OverlappedWeapons.RemoveAt(WarWeaponIndex);
-		return true;
+		int32 WarInteractiveActorIndex = OverlappedActors.Find(InteractiveActor);
+		if (WarInteractiveActorIndex != INDEX_NONE)
+		{
+			OverlappedActors.RemoveAt(WarInteractiveActorIndex);
+			return true;
+		}
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 bool AWarCharacter::IsArmed()
@@ -124,9 +128,9 @@ void AWarCharacter::Turn(const FInputActionValue& InputActionValue)
 
 void AWarCharacter::Interact()
 {
-	if (HighestPriorityWeapon)
+	if (HighestPriorityActor)
 	{
-		HighestPriorityWeapon->PickupWeapon(Cast<APawn>(this));
+		HighestPriorityActor->Interact(Cast<APawn>(this));
 	}
 }
 
@@ -209,17 +213,17 @@ void AWarCharacter::Tick(float DeltaTime)
 	GetWorld()->LineTraceSingleByChannel(HitResult, WarCameraComponent->GetComponentLocation(), WarCameraComponent->GetForwardVector(), ECollisionChannel::ECC_WorldStatic, QueryParameters);
 	if (HitResult.bBlockingHit && IsValid(HitResult.GetActor()))
 	{
-		AWarWeapon* WarWeapon = Cast<AWarWeapon>(HitResult.GetActor());
-		if (WarWeapon)
+		AWarInteractiveActor* WarInteractiveActor = Cast<AWarInteractiveActor>(HitResult.GetActor());
+		if (WarInteractiveActor)
 		{
-			if (OverlappedWeapons.Find(WarWeapon))
+			if (OverlappedActors.Find(WarInteractiveActor))
 			{
-				this->HighestPriorityWeapon = WarWeapon;
+				this->HighestPriorityActor = WarInteractiveActor;
 			}
 		}
-		else if(!OverlappedWeapons.IsEmpty())
+		else if(!OverlappedActors.IsEmpty())
 		{
-			this->HighestPriorityWeapon = OverlappedWeapons.Last();
+			this->HighestPriorityActor = OverlappedActors.Last();
 		}
 	}
 }

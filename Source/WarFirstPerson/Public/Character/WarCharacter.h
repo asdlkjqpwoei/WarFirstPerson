@@ -3,6 +3,7 @@
 #include "GameFramework/Character.h"
 #include "WarCharacter.generated.h"
 
+class AWarInteractiveActor;
 class AWarPlayerController;
 class AWarPlayerState;
 class AWarWeapon;
@@ -39,8 +40,8 @@ public:
 	bool IsArmed();
 
 	void SetIsArmed(bool Armed);
-	bool AddOverlappedWeapon(AWarWeapon* WarWeapon);
-	bool RemoveOverlappedWeapon(AWarWeapon* WarWeapon);
+	bool AddOverlappedActor(AActor* Actor);
+	bool RemoveOverlappedActor(AActor* Actor);
 
 protected:
 	// Called when the game starts or when spawned
@@ -90,7 +91,6 @@ protected:
 	TObjectPtr<UWarCameraComponent> WarCameraComponent;
 
 private:
-	TArray<TObjectPtr<AWarWeapon>> OverlappedWeapons;
-	TObjectPtr<AWarWeapon> HighestPriorityWeapon;
-	TObjectPtr<AActor> HighestPriorityObject = nullptr;
+	TArray<TObjectPtr<AWarInteractiveActor>> OverlappedActors;
+	TObjectPtr<AWarInteractiveActor> HighestPriorityActor;
 };

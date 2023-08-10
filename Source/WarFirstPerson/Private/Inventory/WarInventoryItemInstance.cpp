@@ -13,6 +13,16 @@ TSubclassOf<UWarInventoryItemDefinition> UWarInventoryItemInstance::GetItemDefin
 	return ItemDefinition;
 }
 
+void UWarInventoryItemInstance::SetItemActor(AActor* NewItemActor)
+{
+	ItemActor = NewItemActor;
+}
+
+AActor* UWarInventoryItemInstance::GetItemActor() const
+{
+	return ItemActor;
+}
+
 APawn* UWarInventoryItemInstance::GetTypedPawn(TSubclassOf<APawn> PawnType) const
 {
 	APawn* Pawn = nullptr;
@@ -36,7 +46,7 @@ void UWarInventoryItemInstance::OnUnequipped()
 	BP_OnUnequipped();
 }
 
-void UWarInventoryItemInstance::SetItemDefinition(TSubclassOf<UWarInventoryItemDefinition> InItemDefinition)
+void UWarInventoryItemInstance::SetItemDefinition(TSubclassOf<UWarInventoryItemDefinition> NewItemDefinition)
 {
-	ItemDefinition = InItemDefinition;
+	ItemDefinition = NewItemDefinition;
 }

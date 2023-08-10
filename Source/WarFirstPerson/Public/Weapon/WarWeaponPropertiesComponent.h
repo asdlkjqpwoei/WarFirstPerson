@@ -85,15 +85,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "War|Weapon Properties")
 	float GetFireSpreadExponent() const;
 
+	void SetSpreadRecoveryCoolDownDelay(const float NewSpreadRecoveryCoolDownDelay);
+
+	UFUNCTION(BlueprintCallable, Category = "War|Weapon Properties")
+	float GetSpreadRecoveryCoolDownDelay() const;
+
 	void SetMaterialDamageMultiplier(const TMap<FGameplayTag, float>& NewMaterialDamageMultiplier);
 
 	UFUNCTION(BlueprintCallable, Category = "War|Weapon Properties")
 	TMap<FGameplayTag, float> GetMaterialDamageMultiplier() const;
-
-	void SetSpreadExponent(const float& NewSpreadExponent);
-
-	UFUNCTION(BlueprintCallable, Category = "War|Weapon Properties")
-	float GetSpreadExponent() const;
 
 	void SetHeatToSpreadCurve(const FRuntimeFloatCurve& NewHeatToSpreadCurve);
 
@@ -149,6 +149,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "War|Character Properties")
 	float GetJumpingOrFallingSpreadAngleMultiplier() const;
+	
+	void SetJumpingOrFallingsTransitionRate(const float& NewJumpingOrFallingsTransitionRate);
+
+	UFUNCTION(BlueprintCallable, Category = "War|Character Properties")
+	float GetJumpingOrFallingsTransitionRate() const;
 
 protected:
 	// Called when the game starts
@@ -175,7 +180,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetBaseDamage)
 	float BaseDamage = 0.0f;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetDamageDistanceAttenuationFloatCurve)
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetDamageDistanceAttenuationFloatCurve, Meta = (ForceUnits = cm))
 	FRuntimeFloatCurve DamageDistanceAttenuationFloatCurve;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetPhysicalMaterialDamageMap)
@@ -196,11 +201,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetFireSpreadExponent, Meta = (ClampMin = 0.1))
 	float FireSpreadExponent = 1.0f;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetSpreadRecoveryCoolDownDelay, Meta = (ForceUnits = s))
+	float SpreadRecoveryCoolDownDelay = 0.0f;
+
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetMaterialDamageMultiplier)
 	TMap<FGameplayTag, float> MaterialDamageMultiplier;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetSpreadExponent, Meta = (ClampMin = 0.1))
-	float SpreadExponent = 1.0f;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Weapon Properties", BlueprintGetter = GetHeatToSpreadCurve)
 	FRuntimeFloatCurve HeatToSpreadCurve;
@@ -232,6 +237,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Character Properties", BlueprintGetter = GetCrouchTransitionRate)
 	float CrouchTransitionRate = 5.0f;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Character Properties", BlueprintGetter = GetJumpingOrFallingSpreadAngleMultiplier)
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Character Properties", BlueprintGetter = GetJumpingOrFallingSpreadAngleMultiplier, Meta = (ForceUnits = x))
 	float JumpingOrFallingSpreadAngleMultiplier = 1.0f;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Character Properties", BlueprintGetter = GetJumpingOrFallingsTransitionRate)
+	float JumpingOrFallingTransitionRate = 5.0f;
 };

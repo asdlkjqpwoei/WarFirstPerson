@@ -155,6 +155,16 @@ float UWarWeaponPropertiesComponent::GetFireSpreadExponent() const
 	return FireSpreadExponent;
 }
 
+void UWarWeaponPropertiesComponent::SetSpreadRecoveryCoolDownDelay(const float NewSpreadRecoveryCoolDownDelay)
+{
+	SpreadRecoveryCoolDownDelay = NewSpreadRecoveryCoolDownDelay;
+}
+
+float UWarWeaponPropertiesComponent::GetSpreadRecoveryCoolDownDelay() const
+{
+	return SpreadRecoveryCoolDownDelay;
+}
+
 void UWarWeaponPropertiesComponent::SetMaterialDamageMultiplier(const TMap<FGameplayTag, float>& NewMaterialDamageMultiplier)
 {
 	MaterialDamageMultiplier = NewMaterialDamageMultiplier;
@@ -163,16 +173,6 @@ void UWarWeaponPropertiesComponent::SetMaterialDamageMultiplier(const TMap<FGame
 TMap<FGameplayTag, float> UWarWeaponPropertiesComponent::GetMaterialDamageMultiplier() const
 {
 	return MaterialDamageMultiplier;
-}
-
-void UWarWeaponPropertiesComponent::SetSpreadExponent(const float& NewSpreadExponent)
-{
-	SpreadExponent = NewSpreadExponent;
-}
-
-float UWarWeaponPropertiesComponent::GetSpreadExponent() const
-{
-	return SpreadExponent;
 }
 
 void UWarWeaponPropertiesComponent::SetHeatToSpreadCurve(const FRuntimeFloatCurve& NewHeatToSpreadCurve)
@@ -283,6 +283,16 @@ void UWarWeaponPropertiesComponent::SetJumpingOrFallingSpreadAngleMultiplier(con
 float UWarWeaponPropertiesComponent::GetJumpingOrFallingSpreadAngleMultiplier() const
 {
 	return JumpingOrFallingSpreadAngleMultiplier;
+}
+
+void UWarWeaponPropertiesComponent::SetJumpingOrFallingsTransitionRate(const float& NewJumpingOrFallingsTransitionRate)
+{
+	JumpingOrFallingTransitionRate = NewJumpingOrFallingsTransitionRate;
+}
+
+float UWarWeaponPropertiesComponent::GetJumpingOrFallingsTransitionRate() const
+{
+	return JumpingOrFallingTransitionRate;
 }
 
 // Called when the game starts

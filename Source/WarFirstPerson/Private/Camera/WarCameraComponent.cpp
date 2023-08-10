@@ -1,6 +1,7 @@
 // Personal Copyright
 #include "Camera/WarCameraComponent.h"
 #include "Camera/WarCameraMode.h"
+#include "GameplayTagContainer.h"
 
 UWarCameraComponent::UWarCameraComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bIsActive(true), FieldOfViewOffset(0.0f)
 {
@@ -15,6 +16,28 @@ AActor* UWarCameraComponent::GetFocusActor() const
 void UWarCameraComponent::SetCurrentWarCameraMode(UWarCameraMode* NewWarCameraMode)
 {
 	CurrentWarCameraMode = NewWarCameraMode;
+}
+
+void UWarCameraComponent::GetBlendInfo(float& OutWeightOfTopCameraMode, EWarCameraType& OutTypeOfTopCamera) const
+{
+	if (WarCameraModes.Num() == 0)
+	{
+		OutWeightOfTopCameraMode = 1.0f;
+		OutTypeOfTopCamera = EWarCameraType::Invalid;
+		return;
+	}
+	else
+	{
+		UWarCameraMode* TopWarCameraMode = WarCameraModes.Last();
+		check(TopWarCameraMode);
+		OutWeightOfTopCameraMode = TopWarCameraMode->GetBlendWeight();
+		OutTypeOfTopCamera = TopWarCameraMode->GetWarCameraType();
+	}
+}
+
+UWarCameraComponent* UWarCameraComponent::FindCameraComponent(const AActor* Actor)
+{
+	return (Actor ? Actor->FindComponentByClass<UWarCameraComponent>() : nullptr); 
 }
 
 UWarCameraMode* UWarCameraComponent::GetDefaultFirstCameraMode() const
@@ -34,7 +57,6 @@ UWarCameraMode* UWarCameraComponent::GetDefaultAimDownSightCameraMode() const
 
 void UWarCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
-	check(!WarCameraModes.IsEmpty());
 	if (bIsActive)
 	{
 		AddCameraMode();

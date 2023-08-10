@@ -72,11 +72,6 @@ const FWarCameraModeViewData& UWarCameraMode::GetCameraModeViewData() const
 	return WarCameraModeViewData;
 }
 
-UWorld* UWarCameraMode::GetWorld() const
-{
-	return HasAnyFlags(RF_ClassDefaultObject) ? nullptr : GetOuter()->GetWorld();
-}
-
 void UWarCameraMode::UpdateCameraModeData(float DeltaTime)
 {
 	FVector PivotLocation = GetFocusActorPivotLocation();
@@ -110,6 +105,16 @@ void UWarCameraMode::UpdateCameraModeData(float DeltaTime)
 			checkf(false, TEXT("WarCameraMode UpdateBlending: Invalid blend type [%d]\n"), (uint8)WarCameraModeBlendType);
 			break;
 	}
+}
+
+EWarCameraType UWarCameraMode::GetWarCameraType() const
+{
+	return WarCameraType;
+}
+
+UWorld* UWarCameraMode::GetWorld() const
+{
+	return HasAnyFlags(RF_ClassDefaultObject) ? nullptr : GetOuter()->GetWorld();
 }
 
 void UWarCameraMode::OnActivation()

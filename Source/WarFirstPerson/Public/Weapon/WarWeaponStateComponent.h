@@ -7,10 +7,11 @@ UENUM(BlueprintType)
 enum class EWarWeaponState : uint8
 {
 	Ready,
+	Unequipped,
+	NoOwner,
 	Firing,
 	Reloading,
 	OutOfAmmunition,
-	Unequipped,
 	InvalidState
 };
 

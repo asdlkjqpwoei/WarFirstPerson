@@ -9,7 +9,9 @@ UENUM(BlueprintType)
 enum class EWarCameraType : uint8
 {
 	FirstPerson,
-	ThirdPerson
+	ThirdPerson,
+	AimDownSight,
+	Invalid
 };
 
 UENUM(BlueprintType)
@@ -45,9 +47,10 @@ public:
 	float GetBlendWeight() const;
 	void SetBlendWeight(const float& Weight);
 	const FWarCameraModeViewData& GetCameraModeViewData() const;
-	virtual UWorld* GetWorld() const override;
+	virtual void UpdateCameraModeData(float DeltaTime);
+	EWarCameraType GetWarCameraType() const;
 
-	void UpdateCameraModeData(float DeltaTime);
+	virtual UWorld* GetWorld() const override;
 	virtual void OnActivation();
 	virtual void OnDeactivation();
 
