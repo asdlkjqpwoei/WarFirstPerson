@@ -6,7 +6,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class WARFIRSTPERSON_API UWarFirstPersonCameraMode : public UWarCameraMode
 {
 	GENERATED_BODY()

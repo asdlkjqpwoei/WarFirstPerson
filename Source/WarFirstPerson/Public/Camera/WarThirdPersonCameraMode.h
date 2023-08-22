@@ -5,7 +5,7 @@
 
 class UCurveVector;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FWarPenetrationAvoidanceFeeler
 {
 	GENERATED_BODY()
@@ -35,38 +35,37 @@ struct FWarPenetrationAvoidanceFeeler
 	UPROPERTY(EditDefaultsOnly, Category = "War|Camera Penetration Avoidance Feeler")
 	int32 TraceInterval;
 
-	UPROPERTY(EditDefaultsOnly, Category = "War|Camera Penetration Avoidance Feeler")
+	UPROPERTY(Transient)
 	int32 FramesUntilNextTrace;
 };
 
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class WARFIRSTPERSON_API UWarThirdPersonCameraMode : public UWarCameraMode
 {
 	GENERATED_BODY()
 public:
 	UWarThirdPersonCameraMode();
 protected:
-	void SetTargetCrouchOffset(FVector NewTargetOffset);
-	void UpdateCrouchOffset(float DeltaTime);
+	void SetFocusCrouchOffset(FVector NewFocusCrouchOffset);
 	virtual void UpdateCameraModeData(float DeltaTime) override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera", Meta = (EditCondition = "!bUseRuntimeFloatCurves"))
-	TObjectPtr<const UCurveVector> TargetOffsetCurve;
+	TObjectPtr<const UCurveVector> OwnerActorOffsetCurve;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera")
 	bool bUseRuntimeFloatCurves;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetX;
+	FRuntimeFloatCurve OwnerActorOffsetX;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetY;
+	FRuntimeFloatCurve OwnerActorOffsetY;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetZ;
+	FRuntimeFloatCurve OwnerActorOffsetZ;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Third Person Camera")
 	float CrouchOffsetBlendMultiplier = 5.0f;
@@ -75,7 +74,7 @@ protected:
 	float PenetrationBlendInTime = 0.1f;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Collision")
-	float PenetrationBlentOutTime = 0.15f;
+	float PenetrationBlendOutTime = 0.15f;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Collision")
 	bool bPreventPenetration = true;
@@ -89,11 +88,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Collision")
 	float ReportPenetrationPercent = 0.0f;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Collision")
+	TArray<FWarPenetrationAvoidanceFeeler> PenetrationAvoidanceFeelers;
+
 	UPROPERTY(Transient)
 	float AimLineToDesiredPosBlockedPercent;
 
 	FVector InitialCrouchOffset = FVector::ZeroVector;
-	FVector TargetCrouchOffset = FVector::ZeroVector;
+	FVector OwnerCrouchOffset = FVector::ZeroVector;
 	float CrouchOffsetBlendPercent = 1.0f;
 	FVector CurrentCrouchOffset = FVector::ZeroVector;
 };

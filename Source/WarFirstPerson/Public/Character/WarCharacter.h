@@ -87,7 +87,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "War|Character")
 	TObjectPtr<UWarPawnComponent> WarPawnComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "War|Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UWarCameraComponent> WarCameraComponent;
 
 private:

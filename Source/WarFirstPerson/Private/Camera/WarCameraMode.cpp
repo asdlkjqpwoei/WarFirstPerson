@@ -27,10 +27,10 @@ UWarCameraComponent* UWarCameraMode::GetWarCameraComponent() const
 	return CastChecked<UWarCameraComponent>(GetOuter());
 }
 
-AActor* UWarCameraMode::GetFocusActor() const
+AActor* UWarCameraMode::GetOwnerActor() const
 {
 	const UWarCameraComponent* WarCameraComponent = GetWarCameraComponent();
-	return WarCameraComponent->GetFocusActor();
+	return WarCameraComponent->GetOwnerActor();
 }
 
 float UWarCameraMode::GetBlendTime() const
@@ -74,8 +74,8 @@ const FWarCameraModeViewData& UWarCameraMode::GetCameraModeViewData() const
 
 void UWarCameraMode::UpdateCameraModeData(float DeltaTime)
 {
-	FVector PivotLocation = GetFocusActorPivotLocation();
-	FRotator PivotRotation = GetFocusActorPivotRotation();
+	FVector PivotLocation = GetOwnerActorPivotLocation();
+	FRotator PivotRotation = GetOwnerActorPivotRotation();
 	PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
 	WarCameraModeViewData.Location = PivotLocation;
 	WarCameraModeViewData.Rotation = PivotRotation;
@@ -127,9 +127,9 @@ void UWarCameraMode::OnDeactivation()
 
 }
 
-FVector UWarCameraMode::GetFocusActorPivotLocation() const
+FVector UWarCameraMode::GetOwnerActorPivotLocation() const
 {
-	const AActor* Actor = GetFocusActor();
+	const AActor* Actor = GetOwnerActor();
 	check(Actor);
 	if (const APawn* Pawn = Cast<APawn>(Actor))
 	{
@@ -151,9 +151,9 @@ FVector UWarCameraMode::GetFocusActorPivotLocation() const
 	return Actor->GetActorLocation();
 }
 
-FRotator UWarCameraMode::GetFocusActorPivotRotation() const
+FRotator UWarCameraMode::GetOwnerActorPivotRotation() const
 {
-	const AActor* Actor = GetFocusActor();
+	const AActor* Actor = GetOwnerActor();
 	check(Actor);
 	if (const APawn* Pawn = Cast<APawn>(Actor))
 	{

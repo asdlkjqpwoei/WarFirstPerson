@@ -23,26 +23,35 @@ enum class EWarCameraModeBlendType : uint8
 	EaseInOut
 };
 
+USTRUCT(BlueprintType)
 struct FWarCameraModeViewData
 {
+	GENERATED_BODY();
 	FWarCameraModeViewData();
+	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
 	FVector Location;
+	
+	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
 	FRotator Rotation;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
 	FRotator ControlRotation;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Mode Data", Meta = (UIMin = "5.0", UIMax = "170", ClampMin = "5.0", ClampMax = "170.0"))
 	float FieldOfView;
 };
 
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract, NotBlueprintable)
 class WARFIRSTPERSON_API UWarCameraMode : public UObject
 {
 	GENERATED_BODY()
 public:
 	UWarCameraMode();
 	UWarCameraComponent* GetWarCameraComponent() const;
-	AActor* GetFocusActor() const;
+	AActor* GetOwnerActor() const;
 	float GetBlendTime() const;
 	float GetBlendWeight() const;
 	void SetBlendWeight(const float& Weight);
@@ -55,9 +64,10 @@ public:
 	virtual void OnDeactivation();
 
 protected:
-	virtual FVector GetFocusActorPivotLocation() const;
-	virtual FRotator GetFocusActorPivotRotation() const;
+	virtual FVector GetOwnerActorPivotLocation() const;
+	virtual FRotator GetOwnerActorPivotRotation() const;
 
+	UPROPERTY(EditDefaultsOnly, Category = "War|Camera Mode View")
 	FWarCameraModeViewData WarCameraModeViewData;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "War|Camera Type")
@@ -71,6 +81,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Camera View", Meta = (UIMin = "-89.9", UIMax = "89.9", ClampMin = "-89.9", ClampMax = "89.9"))
 	float ViewPitchMax;
+
+	UPROPERTY(Transient)
+	uint32 bResetInterpolation:1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Blending")
 	float BlendTime;

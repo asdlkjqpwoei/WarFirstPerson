@@ -5,6 +5,10 @@
 #include "Character/WarPawnComponent.h"
 #include "Character/WarPawnData.h"
 #include "Camera/WarCameraComponent.h"
+#include "Camera/WarCameraMode.h"
+#include "Camera/WarFirstPersonCameraMode.h"
+#include "Camera/WarThirdPersonCameraMode.h"
+#include "Camera/WarAimDownSightCameraMode.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InputActionValue.h"
@@ -48,7 +52,9 @@ AWarCharacter::AWarCharacter(const FObjectInitializer& ObjectInitializer): Super
 void AWarCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	UWarCameraMode* ThirdPersonWarCameraMode = NewObject<UWarCameraMode>(WarCameraComponent, WarCameraComponent->GetDefaultThirdPersonCameraMode(), NAME_None, RF_NoFlags);
+	check(ThirdPersonWarCameraMode);
+	WarCameraComponent->SetCurrentWarCameraMode(ThirdPersonWarCameraMode);
 }
 
 bool AWarCharacter::AddOverlappedActor(AActor* Actor)
@@ -156,7 +162,11 @@ void AWarCharacter::AimDownSight()
 	if (bIsArmed && !bIsAimingDownSight)
 	{
 		bIsAimingDownSight = true;
-		WarCameraComponent->SetCurrentWarCameraMode(WarCameraComponent->GetDefaultAimDownSightCameraMode());
+		UWarCameraMode* AimDownSightWarCameraMode = NewObject<UWarCameraMode>(WarCameraComponent, WarCameraComponent->GetDefaultAimDownSightCameraMode(), NAME_None, RF_NoFlags);
+		if (AimDownSightWarCameraMode)
+		{
+			WarCameraComponent->SetCurrentWarCameraMode(AimDownSightWarCameraMode);
+		}
 	}
 }
 
@@ -165,7 +175,9 @@ void AWarCharacter::EndAimDownSight()
 	if (bIsArmed && bIsAimingDownSight)
 	{
 		bIsAimingDownSight = false;
-		WarCameraComponent->SetCurrentWarCameraMode(WarCameraComponent->GetDefaultFirstCameraMode());
+		UWarCameraMode* ThirdPersonWarCameraMode = NewObject<UWarCameraMode>(WarCameraComponent, WarCameraComponent->GetDefaultThirdPersonCameraMode(), NAME_None, RF_NoFlags);
+		check(ThirdPersonWarCameraMode);
+		WarCameraComponent->SetCurrentWarCameraMode(ThirdPersonWarCameraMode);
 	}
 }
 

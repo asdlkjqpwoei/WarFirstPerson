@@ -1,6 +1,9 @@
 // Personal Copyright
 #include "Camera/WarCameraComponent.h"
 #include "Camera/WarCameraMode.h"
+#include "Camera/WarFirstPersonCameraMode.h"
+#include "Camera/WarThirdPersonCameraMode.h"
+#include "Camera/WarAimDownSightCameraMode.h"
 #include "GameplayTagContainer.h"
 
 UWarCameraComponent::UWarCameraComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bIsActive(true), FieldOfViewOffset(0.0f)
@@ -8,14 +11,22 @@ UWarCameraComponent::UWarCameraComponent(const FObjectInitializer& ObjectInitial
 
 }
 
-AActor* UWarCameraComponent::GetFocusActor() const
+AActor* UWarCameraComponent::GetOwnerActor() const
 {
 	return GetOwner();
 }
 
 void UWarCameraComponent::SetCurrentWarCameraMode(UWarCameraMode* NewWarCameraMode)
 {
-	CurrentWarCameraMode = NewWarCameraMode;
+	if (CurrentWarCameraMode)
+	{
+		CurrentWarCameraMode->MarkAsGarbage();
+		CurrentWarCameraMode = NewWarCameraMode;
+	}
+	else
+	{
+		CurrentWarCameraMode = NewWarCameraMode;
+	}
 }
 
 void UWarCameraComponent::GetBlendInfo(float& OutWeightOfTopCameraMode, EWarCameraType& OutTypeOfTopCamera) const
@@ -35,22 +46,37 @@ void UWarCameraComponent::GetBlendInfo(float& OutWeightOfTopCameraMode, EWarCame
 	}
 }
 
+TArray<const AActor*> UWarCameraComponent::GetIgnoredActorsForCameraPenetration() const
+{
+	return TArray<const AActor*>();
+}
+
+TOptional<AActor*> UWarCameraComponent::GetCameraPreventPenetrationTarget() const
+{
+	return TOptional<AActor*>();
+}
+
+void UWarCameraComponent::OnCameraPenetratingTarget()
+{
+
+}
+
 UWarCameraComponent* UWarCameraComponent::FindCameraComponent(const AActor* Actor)
 {
 	return (Actor ? Actor->FindComponentByClass<UWarCameraComponent>() : nullptr); 
 }
 
-UWarCameraMode* UWarCameraComponent::GetDefaultFirstCameraMode() const
+TSubclassOf<UWarFirstPersonCameraMode> UWarCameraComponent::GetDefaultFirstPersonCameraMode() const
 {
-	return DefaultFirstCameraMode;
+	return DefaultFirstPersonCameraMode;
 }
 
-UWarCameraMode* UWarCameraComponent::GetDefaultThirdCameraMode() const
+TSubclassOf<UWarThirdPersonCameraMode> UWarCameraComponent::GetDefaultThirdPersonCameraMode() const
 {
-	return DefaultThirdCameraMode;
+	return DefaultThirdPersonCameraMode;
 }
 
-UWarCameraMode* UWarCameraComponent::GetDefaultAimDownSightCameraMode() const
+TSubclassOf<UWarAimDownSightCameraMode> UWarCameraComponent::GetDefaultAimDownSightCameraMode() const
 {
 	return DefaultAimDownSightCameraMode;
 }
@@ -63,7 +89,7 @@ void UWarCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desir
 	}
 	FWarCameraModeViewData WarCameraModeViewData;
 	EvaluateModes(DeltaTime, WarCameraModeViewData);
-	if (APawn* Pawn = Cast<APawn>(GetFocusActor()))
+	if (APawn* Pawn = Cast<APawn>(GetOwnerActor()))
 	{
 		if (APlayerController* PlayerController = Pawn->GetController<APlayerController>())
 		{
