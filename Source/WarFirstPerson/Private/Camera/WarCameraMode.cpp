@@ -5,7 +5,7 @@
 #include "GameFramework/Character.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(WarCameraMode)
 
-FWarCameraModeViewData::FWarCameraModeViewData() : Location(ForceInit), Rotation(ForceInit), ControlRotation(ForceInit), FieldOfView(80.0f)
+FWarCameraModeViewData::FWarCameraModeViewData() : CurrentLocation(ForceInit), CurrentRotation(ForceInit), CurrentControlRotation(ForceInit), CurrentFieldOfView(80.0f)
 {
 
 }
@@ -77,9 +77,9 @@ void UWarCameraMode::UpdateCameraModeData(float DeltaTime)
 	FVector PivotLocation = GetOwnerActorPivotLocation();
 	FRotator PivotRotation = GetOwnerActorPivotRotation();
 	PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
-	WarCameraModeViewData.Location = PivotLocation;
-	WarCameraModeViewData.Rotation = PivotRotation;
-	WarCameraModeViewData.ControlRotation = WarCameraModeViewData.Rotation;
+	WarCameraModeViewData.CurrentLocation = PivotLocation;
+	WarCameraModeViewData.CurrentRotation = PivotRotation;
+	WarCameraModeViewData.CurrentControlRotation = WarCameraModeViewData.CurrentRotation;
 	if (BlendTime > 0.0f)
 	{
 		BlendAlpha = BlendAlpha + (DeltaTime / BlendTime);

@@ -29,16 +29,16 @@ struct FWarCameraModeViewData
 	GENERATED_BODY();
 	FWarCameraModeViewData();
 	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
-	FVector Location;
+	FVector CurrentLocation;
 	
 	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
-	FRotator Rotation;
+	FRotator CurrentRotation;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
-	FRotator ControlRotation;
+	FRotator CurrentControlRotation;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "War|Camera Mode Data", Meta = (UIMin = "5.0", UIMax = "170", ClampMin = "5.0", ClampMax = "170.0"))
-	float FieldOfView;
+	UPROPERTY(VisibleDefaultsOnly, Category = "War|Camera Mode Data")
+	float CurrentFieldOfView;
 };
 
 /**
@@ -73,8 +73,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "War|Camera Type")
 	EWarCameraType WarCameraType;
 
-	//UPROPERTY(EditDefaultsOnly, Category = "War|Camera View", Meta = (UIMin = "5.0", UIMax = "170", ClampMin = "5.0", ClampMax = "170.0"))
-	//float FieldOfView;
+	UPROPERTY(EditDefaultsOnly, Category = "War|Camera View", Meta = (UIMin = "5.0", UIMax = "170", ClampMin = "5.0", ClampMax = "170.0"))
+	float FieldOfView;
 
 	UPROPERTY(EditDefaultsOnly, Category = "War|Camera View", Meta = (UIMin = "-89.9", UIMax = "89.9", ClampMin = "-89.9", ClampMax = "89.9"))
 	float ViewPitchMin;

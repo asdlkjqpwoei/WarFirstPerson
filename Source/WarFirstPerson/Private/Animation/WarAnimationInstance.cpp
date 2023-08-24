@@ -1,6 +1,4 @@
 // Personal Copyright
-
-
 #include "Animation/WarAnimationInstance.h"
 
 UWarAnimationInstance::UWarAnimationInstance(const FObjectInitializer& ObjectInitializer)

@@ -19,6 +19,7 @@ const FWarCharacterGroundInformation& UWarCharacterMovementComponent::GetCharact
 	if (MovementMode == MOVE_Walking)
 	{
 		WarCharacterGroundInformationCache.GroundHitResult = CurrentFloor.HitResult;
+		WarCharacterGroundInformationCache.GroundDistance = 0.0f;
 	}
 	else
 	{

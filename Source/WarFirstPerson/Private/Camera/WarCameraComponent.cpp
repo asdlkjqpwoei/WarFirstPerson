@@ -93,17 +93,17 @@ void UWarCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desir
 	{
 		if (APlayerController* PlayerController = Pawn->GetController<APlayerController>())
 		{
-			PlayerController->SetControlRotation(WarCameraModeViewData.ControlRotation);
+			PlayerController->SetControlRotation(WarCameraModeViewData.CurrentControlRotation);
 		}
 	}
-	WarCameraModeViewData.FieldOfView = WarCameraModeViewData.FieldOfView + FieldOfViewOffset;
+	WarCameraModeViewData.CurrentFieldOfView = WarCameraModeViewData.CurrentFieldOfView + FieldOfViewOffset;
 	FieldOfViewOffset = 0.0f;
 
-	SetWorldLocationAndRotation(WarCameraModeViewData.Location, WarCameraModeViewData.Rotation);
-	FieldOfView = WarCameraModeViewData.FieldOfView;
-	DesiredView.Location = WarCameraModeViewData.Location;
-	DesiredView.Rotation = WarCameraModeViewData.Rotation;
-	DesiredView.FOV = WarCameraModeViewData.FieldOfView;
+	SetWorldLocationAndRotation(WarCameraModeViewData.CurrentLocation, WarCameraModeViewData.CurrentRotation);
+	FieldOfView = WarCameraModeViewData.CurrentFieldOfView;
+	DesiredView.Location = WarCameraModeViewData.CurrentLocation;
+	DesiredView.Rotation = WarCameraModeViewData.CurrentRotation;
+	DesiredView.FOV = WarCameraModeViewData.CurrentFieldOfView;
 	DesiredView.OrthoWidth = OrthoWidth;
 	DesiredView.OrthoNearClipPlane = OrthoNearClipPlane;
 	DesiredView.OrthoFarClipPlane = OrthoFarClipPlane;
@@ -232,5 +232,5 @@ void UWarCameraComponent::Blend(FWarCameraModeViewData& WarCameraModeViewDataAlp
 		WarCameraModeViewDataAlpha = WarCameraModeViewDataBeta;
 		return;
 	}
-	WarCameraModeViewDataAlpha.Location = FMath::Lerp(WarCameraModeViewDataAlpha.Location, WarCameraModeViewDataBeta.Location, BlendWeightBeta);
+	WarCameraModeViewDataAlpha.CurrentLocation = FMath::Lerp(WarCameraModeViewDataAlpha.CurrentLocation, WarCameraModeViewDataBeta.CurrentLocation, BlendWeightBeta);
 }

@@ -1,8 +1,5 @@
 // Person Copyright
-
 #pragma once
-
-#include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WarCharacterMovementComponent.generated.h"
 

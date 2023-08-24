@@ -35,7 +35,19 @@ AWarCharacter::AWarCharacter(const FObjectInitializer& ObjectInitializer): Super
 	bIsCrouched = false;
 	bIsAimingDownSight = false;
 	bIsMelee = false;
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = 1;
+	UWarCharacterMovementComponent* WarCharacterMovementComponent = CastChecked<UWarCharacterMovementComponent>(GetCharacterMovement());
+	WarCharacterMovementComponent->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	WarCharacterMovementComponent->bCanWalkOffLedgesWhenCrouching = true;
+	WarCharacterMovementComponent->bOrientRotationToMovement = false;
+	WarCharacterMovementComponent->bUseControllerDesiredRotation = false;
+	WarCharacterMovementComponent->BrakingDecelerationWalking = 1400.0f;
+	WarCharacterMovementComponent->BrakingFriction = 6.0f;
+	WarCharacterMovementComponent->BrakingFrictionFactor = 1.0f;
+	WarCharacterMovementComponent->GravityScale = 1.0f;
+	WarCharacterMovementComponent->MaxAcceleration = 2400.0f;
+	WarCharacterMovementComponent->NavAgentProps.bCanCrouch = 1;
+	WarCharacterMovementComponent->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	WarCharacterMovementComponent->SetCrouchedHalfHeight(65.0f);
 
 	WarHealthComponent = CreateDefaultSubobject<UWarHealthComponent>(TEXT("WarHealthComponent"));
 
@@ -200,6 +212,10 @@ void AWarCharacter::ToggleDebugWeidget()
 
 void AWarCharacter::Jump()
 {
+	if (bIsCrouched)
+	{
+		Super::UnCrouch();
+	}
 	Super::Jump();
 }
 

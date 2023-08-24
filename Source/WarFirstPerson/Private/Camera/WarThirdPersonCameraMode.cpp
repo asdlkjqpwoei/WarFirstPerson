@@ -33,10 +33,12 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 			const AWarCharacter* FocusWarCharacterClassDefaultObject = OwnerWarChracter->GetClass()->GetDefaultObject<AWarCharacter>();
 			const float CrouchedHeightAdjustment = FocusWarCharacterClassDefaultObject->CrouchedEyeHeight - FocusWarCharacterClassDefaultObject->BaseEyeHeight;
 			SetFocusCrouchOffset(FVector(0.0f, 0.0f, CrouchedHeightAdjustment));
-			return;
 		}
 	}
-	SetFocusCrouchOffset(FVector::ZeroVector);
+	else
+	{
+		SetFocusCrouchOffset(FVector::ZeroVector);
+	}
 	if (CrouchOffsetBlendPercent < 1.0f)
 	{
 		CrouchOffsetBlendPercent = FMath::Min(CrouchOffsetBlendPercent + DeltaTime * CrouchOffsetBlendMultiplier, 1.0f);
@@ -45,22 +47,22 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 	else
 	{
 		CurrentCrouchOffset = OwnerCrouchOffset;
-		CrouchOffsetBlendPercent;
+		CrouchOffsetBlendPercent = 1.0f;
 	}
 	FVector OwnerActorPivotLocation = GetOwnerActorPivotLocation() + CurrentCrouchOffset;
 	FRotator OwnerActorPivotRotation = GetOwnerActorPivotRotation();
 
 	OwnerActorPivotRotation.Pitch = FMath::ClampAngle(OwnerActorPivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
-	WarCameraModeViewData.Location = OwnerActorPivotLocation;
-	WarCameraModeViewData.Rotation = OwnerActorPivotRotation;
-	WarCameraModeViewData.ControlRotation = WarCameraModeViewData.Rotation;
-	//WarCameraModeViewData.FieldOfView = FieldOfView;
+	WarCameraModeViewData.CurrentLocation = OwnerActorPivotLocation;
+	WarCameraModeViewData.CurrentRotation = OwnerActorPivotRotation;
+	WarCameraModeViewData.CurrentControlRotation = WarCameraModeViewData.CurrentRotation;
+	WarCameraModeViewData.CurrentFieldOfView = FieldOfView;
 	if (!bUseRuntimeFloatCurves)
 	{
 		if (OwnerActorOffsetCurve)
 		{
 			const FVector FocusActorOffset = OwnerActorOffsetCurve->GetVectorValue(OwnerActorPivotRotation.Pitch);
-			WarCameraModeViewData.Location = OwnerActorPivotLocation + OwnerActorPivotRotation.RotateVector(FocusActorOffset);
+			WarCameraModeViewData.CurrentLocation = OwnerActorPivotLocation + OwnerActorPivotRotation.RotateVector(FocusActorOffset);
 		}
 	}
 	else
@@ -69,7 +71,7 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 		FocusActorOffset.X = OwnerActorOffsetX.GetRichCurveConst()->Eval(OwnerActorPivotRotation.Pitch);
 		FocusActorOffset.Y = OwnerActorOffsetY.GetRichCurveConst()->Eval(OwnerActorPivotRotation.Pitch);
 		FocusActorOffset.Z = OwnerActorOffsetZ.GetRichCurveConst()->Eval(OwnerActorPivotRotation.Pitch);
-		WarCameraModeViewData.Location = OwnerActorPivotLocation + OwnerActorPivotRotation.RotateVector(FocusActorOffset);
+		WarCameraModeViewData.CurrentLocation = OwnerActorPivotLocation + OwnerActorPivotRotation.RotateVector(FocusActorOffset);
 	}
 	if (!bPreventPenetration)
 	{
@@ -81,7 +83,7 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 	{
 		FVector ClosestPointOnLineToCapsuleCenter;
 		FVector SafeLocation = OwnerActor->GetActorLocation();
-		FMath::PointDistToLine(SafeLocation, WarCameraModeViewData.Rotation.Vector(), WarCameraModeViewData.Location, ClosestPointOnLineToCapsuleCenter);
+		FMath::PointDistToLine(SafeLocation, WarCameraModeViewData.CurrentRotation.Vector(), WarCameraModeViewData.CurrentLocation, ClosestPointOnLineToCapsuleCenter);
 
 		float const PushInDistance = PenetrationAvoidanceFeelers[0].Extent + CollisionPushOutDistance;
 		float const MaxHalfHeight = OwnerActor->GetSimpleCollisionHalfHeight() - PushInDistance;
@@ -97,7 +99,7 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 		bool const bSingleRayPenetrationCheck = !bDoPredictiveAvoidance;
 		float HardBlockedPercent = AimLineToDesiredPosBlockedPercent;
 		float SoftBlockedPercent = AimLineToDesiredPosBlockedPercent;
-		FVector BaseRay = WarCameraModeViewData.Location - SafeLocation;
+		FVector BaseRay = WarCameraModeViewData.CurrentLocation - SafeLocation;
 		FRotationMatrix BaseRayMatrix(BaseRay.Rotation());
 		FVector BaseRayLocalUp, BaseRayLocalForward, BaseRayLocalRight;
 		BaseRayMatrix.GetScaledAxes(BaseRayLocalForward, BaseRayLocalRight, BaseRayLocalUp);
@@ -200,7 +202,7 @@ void UWarThirdPersonCameraMode::UpdateCameraModeData(float DeltaTime)
 		AimLineToDesiredPosBlockedPercent = FMath::Clamp<float>(AimLineToDesiredPosBlockedPercent, 0.0f, 1.0f);
 		if (AimLineToDesiredPosBlockedPercent < (1.0f - ZERO_ANIMWEIGHT_THRESH))
 		{
-			WarCameraModeViewData.Location = SafeLocation + (WarCameraModeViewData.Location - SafeLocation) * AimLineToDesiredPosBlockedPercent;
+			WarCameraModeViewData.CurrentLocation = SafeLocation + (WarCameraModeViewData.CurrentLocation - SafeLocation) * AimLineToDesiredPosBlockedPercent;
 		}
 	}
 }
